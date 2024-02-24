@@ -1,0 +1,60 @@
+.app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    font-size: 2rem;
+    background-color: #f4f4f4;
+    padding: 0px 40px;
+
+}
+
+.div-wrapper {
+    justify-content: center;
+    align-items: center;
+
+}
+
+.button-wrapper {
+    display: block;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    font-size: 16px;
+    margin: 20px 2px;
+    -webkit-transition-duration: 0.4s;
+    /* Safari */
+    transition-duration: 0.4s;
+    cursor: pointer;
+    border-radius: 12px;
+    box-shadow: -0.7px 4px 2px -0.7px #999;
+
+    &:hover {
+        background-color: #136017;
+        transform: scale(1.005);
+    }
+
+    /* on press */
+    &:active {
+        background-color: #4CAF50;
+        transform: scale(0.95);
+    }
+}
+
+.header-text {
+    text-align: center;
+    display: block;
+    font-size: 21px;
+    font-weight: bold;
+    color: #999;
+    margin: 40px 0px;
+}
