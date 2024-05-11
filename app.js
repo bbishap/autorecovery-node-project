@@ -80,27 +80,55 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  // Function to calculate memory usage in percentage
-  function increaseMemoryContinuous(bufferSizeInBytes, durationInSeconds) {
-    const endTime = Date.now() + durationInSeconds * 1000;
-    const buffer = Buffer.alloc(bufferSizeInBytes, 0);
+  const duration = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-    function fillBuffer() {
-      if (Date.now() < endTime) {
-        buffer.fill(0); // Fill the buffer with zeros (adjust as needed)
-        // Introduce a delay (e.g., 10 milliseconds) before the next iteration
-        setTimeout(fillBuffer, 10);
-      }
-    }
+  let memoryHog = [];
 
-    // Start the continuous memory usage
-    fillBuffer();
+  function getTotalMemory() {
+    return os.totalmem();
   }
 
-  // Adjust these parameters as needed
-  const bufferSizeInBytes = 1024 * 1024 * 1024; // 1GB
-  const durationInSeconds = 180; // 3 minutes
+  function getAvailableMemory() {
+    return os.freemem();
+  }
 
-  // Call the function to continuously use 1GB of memory with a delay
-  increaseMemoryContinuous(bufferSizeInBytes, durationInSeconds);
+  function increaseMemUsage() {
+    const targetMemoryUsage = 0.8 * getTotalMemory(); // 80% of total memory
+    const chunkSize = 100 * 1024 * 1024; // 100MB
+
+    while (
+      getAvailableMemory() >
+      targetMemoryUsage - memoryHog.length * chunkSize
+    ) {
+      memoryHog.push(new Array(chunkSize).fill(0));
+    }
+
+    console.log(
+      `Allocated ${
+        (memoryHog.length * chunkSize) / (1024 * 1024)
+      } MB (${Math.round(
+        ((memoryHog.length * chunkSize) / getTotalMemory()) * 100
+      )}% of total memory)`
+    );
+  }
+
+  function runMemoryHog() {
+    increaseMemUsage();
+
+    const endTime = Date.now() + duration;
+    const interval = setInterval(() => {
+      if (Date.now() >= endTime) {
+        clearInterval(interval);
+        console.log("Memory hog process completed.");
+      } else {
+        console.log(
+          `Memory hog running... (${Math.floor(
+            (endTime - Date.now()) / 1000
+          )} seconds remaining)`
+        );
+      }
+    }, 1000);
+  }
+
+  runMemoryHog();
 }
