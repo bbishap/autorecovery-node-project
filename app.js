@@ -79,7 +79,6 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  const os = require("os");
   const duration = 5 * 60 * 1000; // 5 minutes in milliseconds
 
   let memoryHog = [];
