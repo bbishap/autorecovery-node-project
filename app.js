@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const os = require("os");
 const pidusage = require("pidusage");
+const osUtils = require("os-utils");
 
 // Define the port to listen on
 const port = process.env.PORT || 3000;
@@ -79,55 +80,61 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  const duration = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-  let memoryHog = [];
-
-  function getTotalMemory() {
-    return os.totalmem();
+  // Function to calculate memory usage in percentage
+  function calculateMemoryUsage() {
+    return new Promise((resolve, reject) => {
+      osUtils.totalmem((err, totalMem) => {
+        if (err) {
+          reject(err);
+        } else {
+          osUtils.freemem((err, freeMem) => {
+            if (err) {
+              reject(err);
+            } else {
+              const usedMem = totalMem - freeMem;
+              const memUsagePercentage = (usedMem / totalMem) * 100;
+              resolve(memUsagePercentage);
+            }
+          });
+        }
+      });
+    });
   }
 
-  function getAvailableMemory() {
-    return os.freemem();
-  }
+  // Function to consume memory until reaching the desired percentage for a specific duration
+  async function consumeMemory(targetPercentage, durationMinutes) {
+    const intervalMs = 100; // Adjust this based on how quickly you want to consume memory
+    const targetUsageBytes = os.totalmem() * (targetPercentage / 100);
+    const buffer = [];
+    const startTime = Date.now();
+    let elapsedTime = 0;
 
-  function increaseMemUsage() {
-    const targetMemoryUsage = 0.8 * getTotalMemory(); // 80% of total memory
-    const chunkSize = 100 * 1024 * 1024; // 100MB
+    console.log(
+      `Attempting to reach ${targetPercentage}% memory usage for ${durationMinutes} minutes...`
+    );
 
-    while (
-      getAvailableMemory() >
-      targetMemoryUsage - memoryHog.length * chunkSize
-    ) {
-      memoryHog.push(new Array(chunkSize).fill(0));
+    while (elapsedTime < durationMinutes * 60 * 1000) {
+      buffer.push(Buffer.alloc(10 * 1024 * 1024)); // Allocate 10MB buffer
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      elapsedTime = Date.now() - startTime;
     }
 
     console.log(
-      `Allocated ${
-        (memoryHog.length * chunkSize) / (1024 * 1024)
-      } MB (${Math.round(
-        ((memoryHog.length * chunkSize) / getTotalMemory()) * 100
-      )}% of total memory)`
+      `Memory usage reached ${targetPercentage}% for ${durationMinutes} minutes.`
     );
   }
 
-  function runMemoryHog() {
-    increaseMemUsage();
+  // Main function
+  async function main() {
+    const targetPercentage = 80;
+    const durationMinutes = 5;
 
-    const endTime = Date.now() + duration;
-    const interval = setInterval(() => {
-      if (Date.now() >= endTime) {
-        clearInterval(interval);
-        console.log("Memory hog process completed.");
-      } else {
-        console.log(
-          `Memory hog running... (${Math.floor(
-            (endTime - Date.now()) / 1000
-          )} seconds remaining)`
-        );
-      }
-    }, 1000);
+    try {
+      await consumeMemory(targetPercentage, durationMinutes);
+    } catch (err) {
+      console.error("Error:", err);
+    }
   }
 
-  runMemoryHog();
+  main();
 }
