@@ -96,9 +96,9 @@ function increaseMemoryUsage() {
   }
 
   // Adjust these parameters as needed
-  const bufferSizeInBytes = 1024 * 1024 * 1024; // 1GB
+  const bufferSizeInBytes = 3 * 1024 * 1024 * 1024; // 3GB
   const durationInSeconds = 180; // 3 minutes
 
-  // Call the function to continuously use 1GB of memory with a delay
+  // Call the function to continuously use 3GB of memory with a delay
   increaseMemoryContinuous(bufferSizeInBytes, durationInSeconds);
 }
