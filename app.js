@@ -79,25 +79,41 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  const targetSizeInBytes = 3 * 1024 * 1024 * 1024; // 3GB
+  const os = require("os");
   const duration = 5 * 60 * 1000; // 5 minutes in milliseconds
 
   let memoryHog = [];
 
-  function increaseMemoryUsage() {
+  function getTotalMemory() {
+    return os.totalmem();
+  }
+
+  function getAvailableMemory() {
+    return os.freemem();
+  }
+
+  function increaseMemUsage() {
+    const targetMemoryUsage = 0.8 * getTotalMemory(); // 80% of total memory
     const chunkSize = 100 * 1024 * 1024; // 100MB
 
-    while (memoryHog.length * chunkSize < targetSizeInBytes) {
+    while (
+      getAvailableMemory() >
+      targetMemoryUsage - memoryHog.length * chunkSize
+    ) {
       memoryHog.push(new Array(chunkSize).fill(0));
     }
 
     console.log(
-      `Allocated ${(memoryHog.length * chunkSize) / (1024 * 1024)} MB`
+      `Allocated ${
+        (memoryHog.length * chunkSize) / (1024 * 1024)
+      } MB (${Math.round(
+        ((memoryHog.length * chunkSize) / getTotalMemory()) * 100
+      )}% of total memory)`
     );
   }
 
   function runMemoryHog() {
-    increaseMemoryUsage();
+    increaseMemUsage();
 
     const endTime = Date.now() + duration;
     const interval = setInterval(() => {
