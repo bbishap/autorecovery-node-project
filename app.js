@@ -81,60 +81,26 @@ function increaseCPUUsage() {
 
 function increaseMemoryUsage() {
   // Function to calculate memory usage in percentage
-  function calculateMemoryUsage() {
-    return new Promise((resolve, reject) => {
-      osUtils.totalmem((err, totalMem) => {
-        if (err) {
-          reject(err);
-        } else {
-          osUtils.freemem((err, freeMem) => {
-            if (err) {
-              reject(err);
-            } else {
-              const usedMem = totalMem - freeMem;
-              const memUsagePercentage = (usedMem / totalMem) * 100;
-              resolve(memUsagePercentage);
-            }
-          });
-        }
-      });
-    });
-  }
+  function increaseMemoryContinuous(bufferSizeInBytes, durationInSeconds) {
+    const endTime = Date.now() + durationInSeconds * 1000;
+    const buffer = Buffer.alloc(bufferSizeInBytes, 0);
 
-  // Function to consume memory until reaching the desired percentage for a specific duration
-  async function consumeMemory(targetPercentage, durationMinutes) {
-    const intervalMs = 100; // Adjust this based on how quickly you want to consume memory
-    const targetUsageBytes = os.totalmem() * (targetPercentage / 100);
-    const buffer = [];
-    const startTime = Date.now();
-    let elapsedTime = 0;
-
-    console.log(
-      `Attempting to reach ${targetPercentage}% memory usage for ${durationMinutes} minutes...`
-    );
-
-    while (elapsedTime < durationMinutes * 60 * 1000) {
-      buffer.push(Buffer.alloc(10 * 1024 * 1024)); // Allocate 10MB buffer
-      await new Promise((resolve) => setTimeout(resolve, intervalMs));
-      elapsedTime = Date.now() - startTime;
+    function fillBuffer() {
+      if (Date.now() < endTime) {
+        buffer.fill(0); // Fill the buffer with zeros (adjust as needed)
+        // Introduce a delay (e.g., 10 milliseconds) before the next iteration
+        setTimeout(fillBuffer, 10);
+      }
     }
 
-    console.log(
-      `Memory usage reached ${targetPercentage}% for ${durationMinutes} minutes.`
-    );
+    // Start the continuous memory usage
+    fillBuffer();
   }
 
-  // Main function
-  async function main() {
-    const targetPercentage = 80;
-    const durationMinutes = 5;
+  // Adjust these parameters as needed
+  const bufferSizeInBytes = 1024 * 1024 * 1024; // 1GB
+  const durationInSeconds = 180; // 3 minutes
 
-    try {
-      await consumeMemory(targetPercentage, durationMinutes);
-    } catch (err) {
-      console.error("Error:", err);
-    }
-  }
-
-  main();
+  // Call the function to continuously use 1GB of memory with a delay
+  increaseMemoryContinuous(bufferSizeInBytes, durationInSeconds);
 }
