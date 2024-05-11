@@ -79,26 +79,40 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  function increaseMemoryContinuous(bufferSizeInBytes, durationInSeconds) {
-    const endTime = Date.now() + durationInSeconds * 1000;
-    const buffer = Buffer.alloc(bufferSizeInBytes, 0);
+  const targetSizeInBytes = 3 * 1024 * 1024 * 1024; // 3GB
+  const duration = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-    function fillBuffer() {
-      if (Date.now() < endTime) {
-        buffer.fill(0); // Fill the buffer with zeros (adjust as needed)
-        // Introduce a delay (e.g., 10 milliseconds) before the next iteration
-        setTimeout(fillBuffer, 10);
-      }
+  let memoryHog = [];
+
+  function increaseMemoryUsage() {
+    const chunkSize = 100 * 1024 * 1024; // 100MB
+
+    while (memoryHog.length * chunkSize < targetSizeInBytes) {
+      memoryHog.push(new Array(chunkSize).fill(0));
     }
 
-    // Start the continuous memory usage
-    fillBuffer();
+    console.log(
+      `Allocated ${(memoryHog.length * chunkSize) / (1024 * 1024)} MB`
+    );
   }
 
-  // Adjust these parameters as needed
-  const bufferSizeInBytes = 3 * 1024 * 1024 * 1024; // 3GB
-  const durationInSeconds = 180; // 3 minutes
+  function runMemoryHog() {
+    increaseMemoryUsage();
 
-  // Call the function to continuously use 3GB of memory with a delay
-  increaseMemoryContinuous(bufferSizeInBytes, durationInSeconds);
+    const endTime = Date.now() + duration;
+    const interval = setInterval(() => {
+      if (Date.now() >= endTime) {
+        clearInterval(interval);
+        console.log("Memory hog process completed.");
+      } else {
+        console.log(
+          `Memory hog running... (${Math.floor(
+            (endTime - Date.now()) / 1000
+          )} seconds remaining)`
+        );
+      }
+    }, 1000);
+  }
+
+  runMemoryHog();
 }
