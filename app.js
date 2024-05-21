@@ -80,7 +80,7 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  function consumeMemory(targetPercentage = 0.7, durationMinutes = 10) {
+  function consumeMemory(targetPercentage = 0.6, durationMinutes = 10) {
     // Get total system memory in bytes
     const totalMemory = os.totalmem();
 
