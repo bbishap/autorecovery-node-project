@@ -80,20 +80,16 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  function consumeMemory(targetPercentage = 0.8, durationMinutes = 5) {
-    // Get total system memory in bytes
-    const totalMemory = os.totalmem();
-    const targetMemory = totalMemory * targetPercentage;
+  const os = require("os");
+
+  function consumeMemory(targetMB = 380, durationMinutes = 10) {
+    // Convert target memory from MB to bytes
+    const targetMemory = targetMB * 1024 * 1024;
     const chunkSize = 1 * 1024 * 1024; // 1 MB chunks
     const arrays = [];
     let allocatedMemory = 0;
 
-    console.log(
-      `Total system memory: ${(totalMemory / (1024 * 1024)).toFixed(2)} MB`
-    );
-    console.log(
-      `Target memory to use: ${(targetMemory / (1024 * 1024)).toFixed(2)} MB`
-    );
+    console.log(`Target memory to use: ${targetMB} MB`);
 
     function allocateMemory() {
       try {
@@ -125,9 +121,9 @@ function increaseMemoryUsage() {
         `Current memory usage: ${(usedMemory / (1024 * 1024)).toFixed(2)} MB`
       );
 
-      if (usedMemory < targetMemory) {
+      if (allocatedMemory < targetMemory) {
         allocateMemory();
-      } else if (usedMemory > targetMemory) {
+      } else if (allocatedMemory > targetMemory) {
         releaseMemory();
       }
     }, 1000);
