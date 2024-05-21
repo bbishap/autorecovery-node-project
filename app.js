@@ -43,7 +43,7 @@ function increaseCPUUsage() {
 
   function increaseCPUUsage() {
     let result = 0;
-    let looplimit = 600000000; //change this to increase or decrease cpu usage
+    let looplimit = 800000000; //change this to increase or decrease cpu usage
     for (let i = 0; i < looplimit; i++) {
       result += Math.sqrt(i);
     }
