@@ -80,59 +80,50 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  function consumeMemory(targetPercentage = 0.9) {
-    // Function to get the current memory usage in bytes
-    function getMemoryUsage() {
-      if (performance.memory) {
-        return performance.memory.usedJSHeapSize;
-      } else {
-        throw new Error(
-          "Memory information is not available in this environment."
-        );
-      }
-    }
+  function consumeMemory(targetPercentage = 0.9, durationMinutes = 10) {
+    // Get total system memory in bytes
+    const totalMemory = os.totalmem();
 
-    // Function to allocate memory
-    function allocateMemory(sizeInBytes) {
-      const chunkSize = 1024 * 1024; // 1 MB chunks
-      const chunks = Math.floor(sizeInBytes / chunkSize);
-      const arrays = [];
+    // Calculate target memory to use
+    const targetMemory = totalMemory * targetPercentage;
 
-      for (let i = 0; i < chunks; i++) {
-        arrays.push(new Array(chunkSize).fill(0));
-      }
+    // Log memory information
+    console.log(
+      `Total system memory: ${(totalMemory / (1024 * 1024)).toFixed(2)} MB`
+    );
+    console.log(
+      `Target memory to use: ${(targetMemory / (1024 * 1024)).toFixed(2)} MB`
+    );
 
-      return arrays;
-    }
+    // Allocate memory in chunks
+    const chunkSize = 10 * 1024 * 1024; // 10 MB chunks
+    const arrays = [];
+    let allocatedMemory = 0;
 
-    // Get the total available memory and calculate the target memory to use
-    if (performance.memory) {
-      const totalMemory = performance.memory.jsHeapSizeLimit;
-      const targetMemory = totalMemory * targetPercentage;
-
-      console.log(`Total memory: ${totalMemory / (1024 * 1024)} MB`);
-      console.log(`Target memory: ${targetMemory / (1024 * 1024)} MB`);
-
-      // Get the current memory usage
-      const usedMemory = getMemoryUsage();
-      const memoryToAllocate = targetMemory - usedMemory;
-
-      console.log(`Memory to allocate: ${memoryToAllocate / (1024 * 1024)} MB`);
-
-      // Allocate memory
-      try {
-        const allocatedMemory = allocateMemory(memoryToAllocate);
+    try {
+      while (allocatedMemory < targetMemory) {
+        const arr = new Array(chunkSize).fill(0);
+        arrays.push(arr);
+        allocatedMemory += chunkSize;
         console.log(
-          `Allocated memory: ${
-            (allocatedMemory.length * 1024 * 1024) / (1024 * 1024)
-          } MB`
+          `Allocated ${(allocatedMemory / (1024 * 1024)).toFixed(2)} MB so far`
         );
-      } catch (e) {
-        console.error("Memory allocation failed:", e);
       }
-    } else {
-      console.error("Memory information is not available in this environment.");
+    } catch (e) {
+      console.error("Memory allocation failed:", e);
     }
+
+    console.log(
+      "Memory allocation process completed. Holding memory for 10 minutes."
+    );
+
+    // Hold the allocated memory for the specified duration
+    setTimeout(() => {
+      console.log("Memory release started.");
+      // Clear the allocated arrays
+      arrays.length = 0;
+      console.log("Memory released.");
+    }, durationMinutes * 60 * 1000);
   }
 
   // Run the function to consume memory
