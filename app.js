@@ -35,9 +35,9 @@ app.listen(port, "0.0.0.0", () => {
 
 function increaseCPUUsage() {
   // Adjust these parameters as needed
-  const targetCPUUsage = 70; // Target CPU usage percentage
+  const targetCPUUsage = 90; // Target CPU usage percentage
   const durationInSeconds = 300; // 5 minutes
-  const interval = 10; // Check CPU usage every second
+  const interval = 2; // Check CPU usage every second
 
   let startTime;
 
@@ -80,55 +80,61 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  const duration = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-  let memoryHog = [];
-
-  function getTotalMemory() {
-    return os.totalmem();
-  }
-
-  function getAvailableMemory() {
-    return os.freemem();
-  }
-
-  function increaseMemUsage() {
-    const targetMemoryUsage = 0.8 * getTotalMemory(); // 80% of total memory
-    const chunkSize = 100 * 1024 * 1024; // 100MB
-
-    while (
-      getAvailableMemory() >
-      targetMemoryUsage - memoryHog.length * chunkSize
-    ) {
-      memoryHog.push(new Array(chunkSize).fill(0));
-    }
-
-    console.log(
-      `Allocated ${
-        (memoryHog.length * chunkSize) / (1024 * 1024)
-      } MB (${Math.round(
-        ((memoryHog.length * chunkSize) / getTotalMemory()) * 100
-      )}% of total memory)`
-    );
-  }
-
-  function runMemoryHog() {
-    increaseMemUsage();
-
-    const endTime = Date.now() + duration;
-    const interval = setInterval(() => {
-      if (Date.now() >= endTime) {
-        clearInterval(interval);
-        console.log("Memory hog process completed.");
+  function consumeMemory(targetPercentage = 0.9) {
+    // Function to get the current memory usage in bytes
+    function getMemoryUsage() {
+      if (performance.memory) {
+        return performance.memory.usedJSHeapSize;
       } else {
-        console.log(
-          `Memory hog running... (${Math.floor(
-            (endTime - Date.now()) / 1000
-          )} seconds remaining)`
+        throw new Error(
+          "Memory information is not available in this environment."
         );
       }
-    }, 1000);
+    }
+
+    // Function to allocate memory
+    function allocateMemory(sizeInBytes) {
+      const chunkSize = 1024 * 1024; // 1 MB chunks
+      const chunks = Math.floor(sizeInBytes / chunkSize);
+      const arrays = [];
+
+      for (let i = 0; i < chunks; i++) {
+        arrays.push(new Array(chunkSize).fill(0));
+      }
+
+      return arrays;
+    }
+
+    // Get the total available memory and calculate the target memory to use
+    if (performance.memory) {
+      const totalMemory = performance.memory.jsHeapSizeLimit;
+      const targetMemory = totalMemory * targetPercentage;
+
+      console.log(`Total memory: ${totalMemory / (1024 * 1024)} MB`);
+      console.log(`Target memory: ${targetMemory / (1024 * 1024)} MB`);
+
+      // Get the current memory usage
+      const usedMemory = getMemoryUsage();
+      const memoryToAllocate = targetMemory - usedMemory;
+
+      console.log(`Memory to allocate: ${memoryToAllocate / (1024 * 1024)} MB`);
+
+      // Allocate memory
+      try {
+        const allocatedMemory = allocateMemory(memoryToAllocate);
+        console.log(
+          `Allocated memory: ${
+            (allocatedMemory.length * 1024 * 1024) / (1024 * 1024)
+          } MB`
+        );
+      } catch (e) {
+        console.error("Memory allocation failed:", e);
+      }
+    } else {
+      console.error("Memory information is not available in this environment.");
+    }
   }
 
-  runMemoryHog();
+  // Run the function to consume memory
+  consumeMemory();
 }
