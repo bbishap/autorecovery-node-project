@@ -80,7 +80,7 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  function consumeMemory(targetPercentage = 0.6, durationMinutes = 10) {
+  function consumeMemory(targetPercentage = 0.9, durationMinutes = 10) {
     // Get total system memory in bytes
     const totalMemory = os.totalmem();
 
@@ -95,35 +95,41 @@ function increaseMemoryUsage() {
       `Target memory to use: ${(targetMemory / (1024 * 1024)).toFixed(2)} MB`
     );
 
-    // Allocate memory in chunks
-    const chunkSize = 10 * 1024 * 1024; // 10 MB chunks
+    // Allocate memory in smaller chunks
+    const chunkSize = 1 * 1024 * 1024; // 1 MB chunks
     const arrays = [];
     let allocatedMemory = 0;
 
-    try {
-      while (allocatedMemory < targetMemory) {
+    const memoryReleaseInterval = 30 * 1000; // Release memory every 30 seconds
+
+    // Allocate memory and periodically release excess memory
+    const allocationInterval = setInterval(() => {
+      if (allocatedMemory >= targetMemory) {
+        clearInterval(allocationInterval); // Stop allocation once target memory is reached
+        console.log("Memory allocation completed.");
+        return;
+      }
+
+      try {
         const arr = new Array(chunkSize).fill(0);
         arrays.push(arr);
         allocatedMemory += chunkSize;
         console.log(
           `Allocated ${(allocatedMemory / (1024 * 1024)).toFixed(2)} MB so far`
         );
+      } catch (e) {
+        console.error("Memory allocation failed:", e);
+        clearInterval(allocationInterval); // Stop allocation on error
       }
-    } catch (e) {
-      console.error("Memory allocation failed:", e);
-    }
+    }, 1000); // Allocate memory every second
 
-    console.log(
-      "Memory allocation process completed. Holding memory for 10 minutes."
-    );
-
-    // Hold the allocated memory for the specified duration
-    setTimeout(() => {
-      console.log("Memory release started.");
-      // Clear the allocated arrays
-      arrays.length = 0;
-      console.log("Memory released.");
-    }, durationMinutes * 60 * 1000);
+    // Release memory after reaching a certain threshold
+    setInterval(() => {
+      if (allocatedMemory > targetMemory * 0.95) {
+        arrays.length = 0; // Clear the allocated arrays
+        console.log("Memory released.");
+      }
+    }, memoryReleaseInterval);
   }
 
   // Run the function to consume memory
