@@ -80,8 +80,6 @@ function increaseCPUUsage() {
 }
 
 function increaseMemoryUsage() {
-  const os = require("os");
-
   function consumeMemory(targetMB = 380, durationMinutes = 10) {
     // Convert target memory from MB to bytes
     const targetMemory = targetMB * 1024 * 1024;
