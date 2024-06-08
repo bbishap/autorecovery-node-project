@@ -149,50 +149,29 @@ function killHost() {
     const targetMemory = targetMB * 1024 * 1024;
     const chunkSize = 1 * 1024 * 1024; // 1 MB chunks
     const arrays = [];
-    let allocatedMemory = 0;
 
     console.log(`Target memory to use: ${targetMB} MB`);
 
-    function allocateMemory() {
+    const allocateMemory = () => {
       try {
-        const arr = new Array(chunkSize).fill(0);
-        arrays.push(arr);
-        allocatedMemory += chunkSize;
-        console.log(
-          `Allocated: ${(allocatedMemory / (1024 * 1024)).toFixed(2)} MB`
-        );
+        while (process.memoryUsage().heapUsed < targetMemory) {
+          arrays.push(new Array(chunkSize).fill(0));
+        }
+        console.log(`Memory allocated: ${targetMB} MB`);
       } catch (e) {
         console.error("Memory allocation failed:", e);
       }
-    }
+    };
 
-    function releaseMemory() {
-      if (arrays.length > 0) {
-        arrays.pop();
-        allocatedMemory -= chunkSize;
-        console.log(
-          `Released: ${(allocatedMemory / (1024 * 1024)).toFixed(2)} MB`
-        );
-      }
-    }
+    const releaseMemory = () => {
+      arrays.length = 0; // Release all memory
+      console.log("Memory released.");
+    };
 
-    const checkInterval = setInterval(() => {
-      const usedMemory = process.memoryUsage().heapUsed;
-
-      console.log(
-        `Current memory usage: ${(usedMemory / (1024 * 1024)).toFixed(2)} MB`
-      );
-
-      if (usedMemory < targetMemory) {
-        allocateMemory();
-      } else if (usedMemory > targetMemory) {
-        releaseMemory();
-      }
-    }, 100);
+    allocateMemory();
 
     setTimeout(() => {
-      clearInterval(checkInterval);
-      arrays.length = 0; // Release all memory
+      releaseMemory();
       console.log("Memory consumption period ended. All memory released.");
     }, durationMinutes * 60 * 1000);
   }
