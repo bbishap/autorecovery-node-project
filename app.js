@@ -144,10 +144,10 @@ function increaseMemoryUsage() {
 }
 
 function killHost() {
-  function consumeMemory(targetMB = 1024, durationMinutes = 10) {
+  function consumeMemory(targetMB = 1024, durationMinutes = 30) {
     // Convert target memory from MB to bytes
     const targetMemory = targetMB * 1024 * 1024;
-    const chunkSize = 10 * 1024 * 1024; // 1 MB chunks
+    const chunkSize = 1 * 1024 * 1024; // 1 MB chunks
     const arrays = [];
     let allocatedMemory = 0;
 
@@ -186,7 +186,7 @@ function killHost() {
       if (usedMemory < targetMemory) {
         allocateMemory();
       } else if (usedMemory > targetMemory) {
-        releaseMemory();
+        allocateMemory();
       }
     }, 1000);
 
