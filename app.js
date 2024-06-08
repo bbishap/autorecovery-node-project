@@ -172,7 +172,7 @@ function killHost() {
       } catch (e) {
         clearInterval(allocationInterval); // Stop allocation on error
       }
-    }, 1000); // Allocate memory every second
+    }, 100); // Allocate memory every second
 
     // Release memory after reaching a certain threshold
     setInterval(() => {
