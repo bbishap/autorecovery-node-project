@@ -144,38 +144,61 @@ function increaseMemoryUsage() {
 }
 
 function killHost() {
-  function consumeMemory(targetMB = 900, durationMinutes = 10) {
-    // Convert target memory from MB to bytes
-    const targetMemory = targetMB * 1024 * 1024;
-    const chunkSize = 1 * 1024 * 1024; // 1 MB chunks
-    const arrays = [];
+  function makeServerUnresponsive() {
+    const os = require("os");
 
-    console.log(`Target memory to use: ${targetMB} MB`);
+    // Function to consume memory
+    function consumeMemory(targetMB = 900) {
+      const targetMemory = targetMB * 1024 * 1024; // Convert MB to bytes
+      const chunkSize = 10 * 1024 * 1024; // 10 MB chunks
+      const arrays = [];
+      let allocatedMemory = 0;
 
-    const allocateMemory = () => {
-      try {
-        while (process.memoryUsage().heapUsed < targetMemory) {
-          arrays.push(new Array(chunkSize).fill(0));
+      console.log(`Target memory to use: ${targetMB} MB`);
+
+      function allocateMemory() {
+        try {
+          const arr = new Array(chunkSize).fill(0);
+          arrays.push(arr);
+          allocatedMemory += chunkSize;
+          console.log(
+            `Allocated: ${(allocatedMemory / (1024 * 1024)).toFixed(2)} MB`
+          );
+        } catch (e) {
+          console.error("Memory allocation failed:", e);
         }
-        console.log(`Memory allocated: ${targetMB} MB`);
-      } catch (e) {
-        console.error("Memory allocation failed:", e);
       }
-    };
 
-    const releaseMemory = () => {
-      arrays.length = 0; // Release all memory
-      console.log("Memory released.");
-    };
+      // Allocate memory in chunks until the target memory is reached
+      while (allocatedMemory < targetMemory && os.freemem() > chunkSize) {
+        allocateMemory();
+      }
 
-    allocateMemory();
+      console.log(
+        `Finished allocating memory: ${allocatedMemory / (1024 * 1024)} MB`
+      );
+    }
 
-    setTimeout(() => {
-      releaseMemory();
-      console.log("Memory consumption period ended. All memory released.");
-    }, durationMinutes * 60 * 1000);
+    // Function to consume CPU
+    function consumeCPU() {
+      console.log("Starting CPU consumption...");
+
+      // Perform intensive computations in an infinite loop
+      while (true) {
+        // This loop will keep the CPU busy
+        for (let i = 0; i < 1e8; i++) {
+          Math.sqrt(i);
+        }
+      }
+    }
+
+    // Start memory consumption
+    consumeMemory();
+
+    // Start CPU consumption
+    consumeCPU();
   }
 
-  // Run the function to consume memory
-  consumeMemory();
+  // Call the function to simulate high resource usage
+  makeServerUnresponsive();
 }
