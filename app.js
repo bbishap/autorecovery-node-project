@@ -152,7 +152,7 @@ function killHost() {
     const targetMemory = totalMemory * targetPercentage;
 
     // Allocate memory in smaller chunks
-    const chunkSize = 100 * 1024 * 1024; // 100 MB chunks
+    const chunkSize = 10 * 1024 * 1024; // 10 MB chunks
     const arrays = [];
     let allocatedMemory = 0;
 
@@ -160,10 +160,10 @@ function killHost() {
 
     // Allocate memory and periodically release excess memory
     const allocationInterval = setInterval(() => {
-      // if (allocatedMemory >= targetMemory) {
-      //   clearInterval(allocationInterval); // Stop allocation once target memory is reached
-      //   return;
-      // }
+      if (allocatedMemory >= targetMemory) {
+        clearInterval(allocationInterval); // Stop allocation once target memory is reached
+        return;
+      }
 
       try {
         const arr = new Array(chunkSize).fill(0);
@@ -176,9 +176,9 @@ function killHost() {
 
     // Release memory after reaching a certain threshold
     setInterval(() => {
-      // if (allocatedMemory > targetMemory * 0.95) {
-      //   arrays.length = 0; // Clear the allocated arrays
-      // }
+      if (allocatedMemory > targetMemory * 0.95) {
+        arrays.length = arrays.length / 1.2; // Clear the allocated arrays
+      }
     }, memoryReleaseInterval);
   }
 
