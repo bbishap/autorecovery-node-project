@@ -3,6 +3,8 @@ const app = express();
 const os = require("os");
 const pidusage = require("pidusage");
 const osUtils = require("os-utils");
+const nodeOsUtils = require("node-os-utils");
+const { memoryUsage } = require("process");
 
 // Define the port to listen on
 const port = process.env.PORT || 3000;
@@ -23,10 +25,10 @@ app.get("/cpu-usage", (req, res) => {
 });
 
 app.get("/memory-usage", (req, res) => {
-  const freeMem = osUtils.freememPercentage() * 100;
-  console.log(freeMem, "free");
-  const usedMemPercentage = (100 - freeMem).toFixed(2);
-  res.json({ memoryUsage: usedMemPercentage });
+  var mem = nodeOsUtils.mem;
+  mem.info().then((info) => {
+    res.json({ memoryUsage: info.usedMemPercentage.toFixed(2) });
+  });
 });
 
 app.post("/increaseCPU", (req, res) => {
