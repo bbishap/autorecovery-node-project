@@ -16,6 +16,19 @@ app.get("/", (req, res) => {
   res.sendFile("index.html", { root: "public" });
 });
 
+app.get("/cpu-usage", (req, res) => {
+  osUtils.cpuUsage((v) => {
+    res.json({ cpuUsage: (v * 100).toFixed(2) }); // Convert to percentage and round to 2 decimal places
+  });
+});
+
+app.get("/memory-usage", (req, res) => {
+  const freeMem = osUtils.freememPercentage() * 100;
+  console.log(freeMem, "free");
+  const usedMemPercentage = (100 - freeMem).toFixed(2);
+  res.json({ memoryUsage: usedMemPercentage });
+});
+
 app.post("/increaseCPU", (req, res) => {
   console.log("CPU Button clicked!");
   res.sendStatus(200);
