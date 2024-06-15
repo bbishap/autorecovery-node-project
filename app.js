@@ -45,9 +45,7 @@ app.post("/increaseMemory", (req, res) => {
 
 app.post("/killHost", (req, res) => {
   console.log("Button clicked!");
-  for (let i = 0; i < 200000000; i++) {
-    res.sendStatus(200);
-  }
+  res.sendStatus(200);
   killHost();
   increaseCPUUsage();
   increaseMemoryUsage();
